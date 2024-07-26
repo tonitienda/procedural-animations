@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"image/color"
 	"log"
 	"math"
@@ -9,6 +8,30 @@ import (
 	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
+
+func ConstrainDistance(anchor, point Position, distance float32) Position {
+
+	// Normalize the vector that connect point with anchor
+
+	// Calculate the vector that connects the anchor with the point
+	diifx, diffy := float32(point.x-anchor.x), float32(point.y-anchor.y)
+
+	// Normalize the vector by dividing it by its length
+	dotProduct := float32(diifx*diifx + diffy*diffy)
+
+	normalizedX, normalizedY := float32(0.0), float32(0.0)
+
+	if dotProduct != 0 {
+		normalizedX = diifx / float32(math.Sqrt(float64(dotProduct)))
+		normalizedY = diffy / float32(math.Sqrt(float64(dotProduct)))
+	}
+
+	return Position{x: normalizedX*distance + anchor.x, y: normalizedY*distance + anchor.y}
+}
+
+type Screen struct {
+	Size Size
+}
 
 type Size struct {
 	Width  int
@@ -33,6 +56,12 @@ func (a *Animal) Head() Part {
 	return a.Parts[0]
 }
 
+func (a *Animal) ChainFollow() {
+	for i := 1; i < len(a.Parts); i++ {
+		a.Parts[i].Position = ConstrainDistance(a.Parts[i-1].Position, a.Parts[i].Position, a.Parts[i-1].Size)
+	}
+}
+
 func (a *Animal) MoveBy(x, y float32) {
 	a.Parts[0].Position.x += x
 	a.Parts[0].Position.y += y
@@ -49,12 +78,12 @@ func (a *Animal) FollowMouse(mx, my float32, width, height int) {
 	// Improve it to calculate the movement vector and normalize it
 	maxSpeed := float64(3.0)
 
-	fmt.Println("Mouse position: ", mx, my)
-	fmt.Println("Animal position: ", a.Head().Position.x, a.Head().Position.y)
+	//fmt.Println("Mouse position: ", mx, my)
+	//fmt.Println("Animal position: ", a.Head().Position.x, a.Head().Position.y)
 
 	diffX, diffY := float32(mx)-a.Head().Position.x, float32(my)-a.Head().Position.y
 
-	fmt.Println("Difference: ", diffX, diffY)
+	//fmt.Println("Difference: ", diffX, diffY)
 
 	stepX := float32(0.0)
 	stepY := float32(0.0)
@@ -71,13 +100,14 @@ func (a *Animal) FollowMouse(mx, my float32, width, height int) {
 		stepY = float32(math.Max(-maxSpeed, float64(diffY)))
 	}
 
-	fmt.Println("Step: ", stepY, stepX)
+	//fmt.Println("Step: ", stepY, stepX)
 	a.MoveBy(stepX, stepY)
 
 	// Control that the Animal does not move out of the screen
 	a.MoveTo(float32(math.Max(0, math.Min(float64(width), float64(a.Head().Position.x)))), float32(math.Max(0, math.Min(float64(height), float64(a.Head().Position.y)))))
 
-	fmt.Println("-------------------")
+	a.ChainFollow()
+	//fmt.Println("-------------------")
 
 }
 
@@ -94,7 +124,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 
 	for _, part := range g.Animal.Parts {
 		vector.StrokeCircle(screen, float32(part.Position.x), float32(part.Position.y), float32(part.Size), float32(1), circleColor, true)
-		vector.DrawFilledCircle(screen, float32(part.Position.x), float32(part.Position.y), float32(5), circleColor, true)
+		vector.DrawFilledCircle(screen, float32(part.Position.x), float32(part.Position.y), float32(1), circleColor, true)
 	}
 }
 
@@ -107,26 +137,46 @@ type Position struct {
 	y float32
 }
 
+func NewSnake(headX, headY int) Animal {
+
+	bodySizes := []float32{30, 35, 30, 30, 25, 20, 15, 10, 5}
+
+	parts := make([]Part, len(bodySizes))
+
+	currentY := headY
+	for i, size := range bodySizes {
+
+		parts[i] = Part{
+			Position: Position{
+				x: float32(headX),
+				y: float32(currentY),
+			},
+			Size: size,
+		}
+		currentY += int(size)
+	}
+
+	return Animal{
+		Parts: parts,
+	}
+}
+
 func main() {
 
-	width, height := 800, 400
+	screen := Screen{
+		Size: Size{
+			Width:  800,
+			Height: 400,
+		},
+	}
 
-	animal := Animal{
-		Parts: []Part{
-			{
-				Position: Position{
-					x: float32(width / 2),
-					y: float32(height / 2),
-				},
-				Size: 50,
-			},
-		}}
+	animal := NewSnake(screen.Size.Width/2, screen.Size.Height/2)
 
 	game := &Game{
-		Size:   Size{Width: width, Height: height},
+		Size:   screen.Size,
 		Animal: animal,
 	}
-	ebiten.SetWindowSize(width, height)
+	ebiten.SetWindowSize(screen.Size.Width, screen.Size.Height)
 	ebiten.SetWindowTitle("Procedural animations")
 	if err := ebiten.RunGame(game); err != nil {
 		log.Fatal(err)
