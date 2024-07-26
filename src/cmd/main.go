@@ -137,9 +137,33 @@ type Position struct {
 	y float32
 }
 
-func NewSnake(headX, headY int) Animal {
+func NewFish(headX, headY int) Animal {
 
 	bodySizes := []float32{30, 35, 30, 30, 25, 20, 15, 10, 5}
+
+	parts := make([]Part, len(bodySizes))
+
+	currentY := headY
+	for i, size := range bodySizes {
+
+		parts[i] = Part{
+			Position: Position{
+				x: float32(headX),
+				y: float32(currentY),
+			},
+			Size: size,
+		}
+		currentY += int(size)
+	}
+
+	return Animal{
+		Parts: parts,
+	}
+}
+
+func NewSnake(headX, headY int) Animal {
+
+	bodySizes := []float32{20, 25, 30, 25, 20, 15, 15, 15, 15, 15, 15, 15, 15, 15, 10, 10, 10, 5, 5, 3}
 
 	parts := make([]Part, len(bodySizes))
 
