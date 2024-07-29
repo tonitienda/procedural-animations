@@ -1,0 +1,4 @@
+# Ignore built files
+out/*
+!out/index.html
+!out/wasm_exec.js

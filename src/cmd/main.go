@@ -6,6 +6,7 @@ import (
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/ebitenutil"
 	"github.com/hajimehoshi/ebiten/v2/vector"
 )
 
@@ -120,6 +121,8 @@ func (g *Game) Update() error {
 }
 
 func (g *Game) Draw(screen *ebiten.Image) {
+	ebitenutil.DebugPrint(screen, "v0.0.1")
+
 	circleColor := color.RGBA{255, 255, 255, 255} // Red color with full opacity
 
 	for _, part := range g.Animal.Parts {
@@ -203,6 +206,6 @@ func main() {
 	ebiten.SetWindowSize(screen.Size.Width, screen.Size.Height)
 	ebiten.SetWindowTitle("Procedural animations")
 	if err := ebiten.RunGame(game); err != nil {
-		log.Fatal(err)
+		log.Println("Game ended with error:", err)
 	}
 }
