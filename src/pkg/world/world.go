@@ -7,15 +7,16 @@ import (
 
 // FIXME - entities map should be private or readonly
 type World struct {
-	entities           []entities.Entity
-	Positions          map[entities.Entity]*components.Position
-	Velocities         map[entities.Entity]*components.Velocity
-	GravitationalPulls map[entities.Entity]*components.GravitationalPull
-	Circles            map[entities.Entity]*components.Circle
-	BoundaryBouncings  map[entities.Entity]*components.BounceBoundaries
-	LeadMovements      map[entities.Entity]*components.LeadMovement
-	systems            []System
-	nextEntityID       entities.Entity
+	entities            []entities.Entity
+	Positions           map[entities.Entity]*components.Position
+	Velocities          map[entities.Entity]*components.Velocity
+	GravitationalPulls  map[entities.Entity]*components.GravitationalPull
+	Circles             map[entities.Entity]*components.Circle
+	BoundaryBouncings   map[entities.Entity]*components.BounceBoundaries
+	LeadMovements       map[entities.Entity]*components.LeadMovement
+	DistanceConstraints map[entities.Entity]*components.DistanceConstraint
+	systems             []System
+	nextEntityID        entities.Entity
 }
 
 type System interface {
@@ -24,14 +25,15 @@ type System interface {
 
 func NewWorld() *World {
 	return &World{
-		Positions:          make(map[entities.Entity]*components.Position),
-		Velocities:         make(map[entities.Entity]*components.Velocity),
-		GravitationalPulls: make(map[entities.Entity]*components.GravitationalPull),
-		Circles:            make(map[entities.Entity]*components.Circle),
-		BoundaryBouncings:  make(map[entities.Entity]*components.BounceBoundaries),
-		LeadMovements:      make(map[entities.Entity]*components.LeadMovement),
-		systems:            []System{},
-		nextEntityID:       0,
+		Positions:           make(map[entities.Entity]*components.Position),
+		Velocities:          make(map[entities.Entity]*components.Velocity),
+		GravitationalPulls:  make(map[entities.Entity]*components.GravitationalPull),
+		Circles:             make(map[entities.Entity]*components.Circle),
+		BoundaryBouncings:   make(map[entities.Entity]*components.BounceBoundaries),
+		LeadMovements:       make(map[entities.Entity]*components.LeadMovement),
+		DistanceConstraints: make(map[entities.Entity]*components.DistanceConstraint),
+		systems:             []System{},
+		nextEntityID:        0,
 	}
 }
 
@@ -57,6 +59,8 @@ func (w *World) AddComponents(entity entities.Entity, args ...interface{}) {
 			w.BoundaryBouncings[entity] = c
 		case *components.LeadMovement:
 			w.LeadMovements[entity] = c
+		case *components.DistanceConstraint:
+			w.DistanceConstraints[entity] = c
 		default:
 			// Handle unknown component types if necessary
 		}
@@ -81,5 +85,6 @@ func (w *World) Reset() {
 	w.Circles = make(map[entities.Entity]*components.Circle)
 	w.BoundaryBouncings = make(map[entities.Entity]*components.BounceBoundaries)
 	w.LeadMovements = make(map[entities.Entity]*components.LeadMovement)
+	w.DistanceConstraints = make(map[entities.Entity]*components.DistanceConstraint)
 	w.nextEntityID = 0
 }

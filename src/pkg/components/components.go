@@ -1,6 +1,10 @@
 package components
 
-import "image/color"
+import (
+	"image/color"
+
+	"github.com/tonitienda/procedural-animations-go/src/pkg/entities"
+)
 
 type Position struct {
 	X, Y float64
@@ -29,7 +33,7 @@ type LeadMovement struct {
 	MaxSpeed float32
 }
 
-type ChainMovement struct {
-	Prev int
-	Next int
+type DistanceConstraint struct {
+	Prev     entities.Entity
+	Distance float64
 }
