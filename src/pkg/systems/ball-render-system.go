@@ -35,10 +35,6 @@ type CircleRenderSystem struct {
 func (rs *CircleRenderSystem) Draw(screen *ebiten.Image) {
 	for entity, position := range *(rs.positions) {
 		if circle, ok := (*(rs.circles))[entity]; ok {
-			//draw3DSphere(screen, position.X, position.Y, circle.Radius, 1, circle.Color)
-			// Render the entity
-			// This example assumes you're drawing circles for entities
-			//ebitenutil.DrawCircle(screen, position.X, position.Y, circle.Radius, circle.Color)
 			vector.DrawFilledCircle(screen, float32(position.X), float32(position.Y), float32(circle.Radius), colorToRGBA(circle.Color), true)
 		}
 

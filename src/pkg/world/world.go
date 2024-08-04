@@ -68,3 +68,13 @@ func (w *World) Update() {
 		system.Update()
 	}
 }
+
+func (w *World) Reset() {
+	w.Positions = make(map[entities.Entity]*components.Position)
+	w.Velocities = make(map[entities.Entity]*components.Velocity)
+	w.GravitationalPulls = make(map[entities.Entity]*components.GravitationalPull)
+	w.Circles = make(map[entities.Entity]*components.Circle)
+	w.BoundaryBouncings = make(map[entities.Entity]*components.BounceBoundaries)
+	//w.systems = []System{}
+	w.nextEntityID = 0
+}

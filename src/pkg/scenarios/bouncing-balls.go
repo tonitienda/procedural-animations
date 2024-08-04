@@ -4,6 +4,7 @@ import (
 	"image/color"
 
 	"github.com/tonitienda/procedural-animations-go/src/pkg/components"
+	"github.com/tonitienda/procedural-animations-go/src/pkg/systems"
 	"github.com/tonitienda/procedural-animations-go/src/pkg/world"
 )
 
@@ -16,7 +17,8 @@ type BouncingBall struct {
 	Color     color.RGBA
 }
 
-func AddBouncingBall(world *world.World, settings BouncingBall) {
+func addBouncingBall(world *world.World, settings BouncingBall) {
+
 	ball := world.AddEntity()
 	world.AddComponents(ball,
 		&components.Position{X: settings.PosX, Y: settings.PosY},
@@ -27,8 +29,15 @@ func AddBouncingBall(world *world.World, settings BouncingBall) {
 
 }
 
-func StartScenario(world *world.World) {
-	AddBouncingBall(world, BouncingBall{
+func StartBouncingBallsScenario(world *world.World) {
+
+	world.Reset()
+
+	world.AddSystem(systems.NewGravitySystem(world))
+	world.AddSystem(systems.NewBoundaryBouncingSystem(world, 800, 600))
+	world.AddSystem(systems.NewPositionSystem(world))
+
+	addBouncingBall(world, BouncingBall{
 		PosX:      400,
 		PosY:      100,
 		VelocityX: 0,
@@ -36,7 +45,7 @@ func StartScenario(world *world.World) {
 		Radius:    30, Color: color.RGBA{255, 0, 0, 255},
 	})
 
-	AddBouncingBall(world, BouncingBall{
+	addBouncingBall(world, BouncingBall{
 		PosX:      0,
 		PosY:      0,
 		VelocityX: 5,
@@ -44,7 +53,7 @@ func StartScenario(world *world.World) {
 		Radius:    25, Color: color.RGBA{0, 255, 0, 255},
 	})
 
-	AddBouncingBall(world, BouncingBall{
+	addBouncingBall(world, BouncingBall{
 		PosX:      0,
 		PosY:      0,
 		VelocityX: 2,
