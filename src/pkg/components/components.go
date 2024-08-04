@@ -10,7 +10,7 @@ type Velocity struct {
 	X, Y float64
 }
 
-type Renderable struct {
+type Circle struct {
 	Radius float64
 	Color  color.Color
 }

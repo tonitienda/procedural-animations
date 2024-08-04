@@ -11,7 +11,7 @@ type World struct {
 	Positions          map[entities.Entity]*components.Position
 	Velocities         map[entities.Entity]*components.Velocity
 	GravitationalPulls map[entities.Entity]*components.GravitationalPull
-	Renderables        map[entities.Entity]*components.Renderable
+	Circles            map[entities.Entity]*components.Circle
 	BoundaryBouncings  map[entities.Entity]*components.BounceBoundaries
 	systems            []System
 	nextEntityID       entities.Entity
@@ -26,7 +26,7 @@ func NewWorld() *World {
 		Positions:          make(map[entities.Entity]*components.Position),
 		Velocities:         make(map[entities.Entity]*components.Velocity),
 		GravitationalPulls: make(map[entities.Entity]*components.GravitationalPull),
-		Renderables:        make(map[entities.Entity]*components.Renderable),
+		Circles:            make(map[entities.Entity]*components.Circle),
 		BoundaryBouncings:  make(map[entities.Entity]*components.BounceBoundaries),
 		systems:            []System{},
 		nextEntityID:       0,
@@ -47,8 +47,8 @@ func (w *World) AddComponents(entity entities.Entity, args ...interface{}) {
 			w.Positions[entity] = c
 		case *components.GravitationalPull:
 			w.GravitationalPulls[entity] = c
-		case *components.Renderable:
-			w.Renderables[entity] = c
+		case *components.Circle:
+			w.Circles[entity] = c
 		case *components.Velocity:
 			w.Velocities[entity] = c
 		case *components.BounceBoundaries:

@@ -10,18 +10,18 @@ import (
 )
 
 type Game struct {
-	world        *world.World
-	renderSystem *systems.RenderSystem
+	world              *world.World
+	circleRenderSystem *systems.CircleRenderSystem
 }
 
 func NewGame() *Game {
 	w := world.NewWorld()
 
-	rs := systems.NewRenderSystem(w)
+	rs := systems.NewCircleRenderSystem(w)
 
 	return &Game{
-		world:        w,
-		renderSystem: rs,
+		world:              w,
+		circleRenderSystem: rs,
 	}
 }
 
@@ -32,7 +32,7 @@ func (g *Game) Update() error {
 
 func (g *Game) Draw(screen *ebiten.Image) {
 	screen.Fill(color.RGBA{0, 0, 0, 255})
-	g.renderSystem.Draw(screen)
+	g.circleRenderSystem.Draw(screen)
 }
 
 func (g *Game) Layout(outsideWidth, outsideHeight int) (int, int) {
