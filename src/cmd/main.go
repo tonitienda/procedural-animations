@@ -13,10 +13,11 @@ import (
 type Scenario func(w *world.World)
 
 var scenarioList = map[string]Scenario{
-	"Bouncing cicles": scenarios.StartBouncingBallsScenario,
+	"Bouncing cicles":  scenarios.StartBouncingBallsScenario,
+	"Procedural Snake": scenarios.StartSnakeScenario,
 }
 
-var menuItems = []string{"Bouncing cicles"}
+var menuItems = []string{"Bouncing cicles", "Procedural Snake"}
 
 type Game struct {
 	world              *world.World

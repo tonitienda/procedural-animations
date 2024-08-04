@@ -22,3 +22,12 @@ type GravitationalPull struct {
 type BounceBoundaries struct {
 	BounceFactor float64
 }
+
+type LeadMovement struct {
+	MaxSpeed float32
+}
+
+type ChainMovement struct {
+	Prev int
+	Next int
+}

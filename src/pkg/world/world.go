@@ -13,6 +13,7 @@ type World struct {
 	GravitationalPulls map[entities.Entity]*components.GravitationalPull
 	Circles            map[entities.Entity]*components.Circle
 	BoundaryBouncings  map[entities.Entity]*components.BounceBoundaries
+	LeadMovements      map[entities.Entity]*components.LeadMovement
 	systems            []System
 	nextEntityID       entities.Entity
 }
@@ -28,6 +29,7 @@ func NewWorld() *World {
 		GravitationalPulls: make(map[entities.Entity]*components.GravitationalPull),
 		Circles:            make(map[entities.Entity]*components.Circle),
 		BoundaryBouncings:  make(map[entities.Entity]*components.BounceBoundaries),
+		LeadMovements:      make(map[entities.Entity]*components.LeadMovement),
 		systems:            []System{},
 		nextEntityID:       0,
 	}
@@ -53,6 +55,8 @@ func (w *World) AddComponents(entity entities.Entity, args ...interface{}) {
 			w.Velocities[entity] = c
 		case *components.BounceBoundaries:
 			w.BoundaryBouncings[entity] = c
+		case *components.LeadMovement:
+			w.LeadMovements[entity] = c
 		default:
 			// Handle unknown component types if necessary
 		}
@@ -70,11 +74,12 @@ func (w *World) Update() {
 }
 
 func (w *World) Reset() {
+	w.systems = []System{}
 	w.Positions = make(map[entities.Entity]*components.Position)
 	w.Velocities = make(map[entities.Entity]*components.Velocity)
 	w.GravitationalPulls = make(map[entities.Entity]*components.GravitationalPull)
 	w.Circles = make(map[entities.Entity]*components.Circle)
 	w.BoundaryBouncings = make(map[entities.Entity]*components.BounceBoundaries)
-	//w.systems = []System{}
+	w.LeadMovements = make(map[entities.Entity]*components.LeadMovement)
 	w.nextEntityID = 0
 }
