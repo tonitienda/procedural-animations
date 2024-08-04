@@ -14,7 +14,7 @@ func AddSnake(headx, heady int, world *world.World) {
 	log.Println("Adding Snake Head")
 
 	snakeHead := world.AddEntity()
-	world.AddComponents(snakeHead, &components.LeadMovement{MaxSpeed: 3}, &components.Position{X: float64(headx), Y: float64(heady)}, &components.Circle{Radius: 20, Color: color.White})
+	world.AddComponents(snakeHead, &components.LeadMovement{MaxSpeed: 3}, &components.Position{X: float64(headx), Y: float64(heady)}, &components.Circle{Radius: 20, StrokeColor: color.White, ShowCenter: true})
 
 	log.Println("Snake added")
 

@@ -35,7 +35,18 @@ type CircleRenderSystem struct {
 func (rs *CircleRenderSystem) Draw(screen *ebiten.Image) {
 	for entity, position := range *(rs.positions) {
 		if circle, ok := (*(rs.circles))[entity]; ok {
-			vector.DrawFilledCircle(screen, float32(position.X), float32(position.Y), float32(circle.Radius), colorToRGBA(circle.Color), true)
+			if circle.FillColor != nil {
+				vector.DrawFilledCircle(screen, float32(position.X), float32(position.Y), float32(circle.Radius), colorToRGBA(circle.FillColor), true)
+			}
+
+			if circle.StrokeColor != nil {
+				vector.StrokeCircle(screen, float32(position.X), float32(position.Y), float32(circle.Radius), 1, colorToRGBA(circle.StrokeColor), true)
+			}
+
+			if circle.ShowCenter {
+				vector.DrawFilledCircle(screen, float32(position.X), float32(position.Y), 2, circle.StrokeColor, true)
+			}
+
 		}
 
 	}

@@ -23,7 +23,7 @@ func addBouncingBall(world *world.World, settings BouncingBall) {
 	world.AddComponents(ball,
 		&components.Position{X: settings.PosX, Y: settings.PosY},
 		&components.Velocity{X: settings.VelocityX, Y: settings.VelocityY},
-		&components.Circle{Radius: settings.Radius, Color: settings.Color},
+		&components.Circle{Radius: settings.Radius, FillColor: settings.Color},
 		&components.GravitationalPull{Acceleration: 0.1},
 		&components.BounceBoundaries{BounceFactor: 1})
 

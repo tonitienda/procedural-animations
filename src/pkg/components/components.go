@@ -11,8 +11,10 @@ type Velocity struct {
 }
 
 type Circle struct {
-	Radius float64
-	Color  color.Color
+	Radius      float64
+	FillColor   color.Color
+	StrokeColor color.Color
+	ShowCenter  bool
 }
 
 type GravitationalPull struct {
