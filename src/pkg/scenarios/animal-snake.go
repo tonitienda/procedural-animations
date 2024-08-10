@@ -11,7 +11,10 @@ import (
 )
 
 func AddSnake(headx, heady int, world *world.World) {
-	bodyPartsRadius := []float64{20, 25, 30, 25, 20, 15, 15, 15, 15, 15, 15, 15, 15, 15, 10, 10, 10, 5, 5, 3}
+	bodyPartsRadius := []float64{20, 25, 30, 25, 20, 15, 15, 15, 10, 10, 10, 5, 5, 3}
+	//bodyPartsRadius := []float64{20, 25}
+	//bodyPartsRadius := []float64{20}
+
 	log.Println("Adding Snake Head")
 
 	snakeParts := make([]entities.Entity, 0)
@@ -22,8 +25,8 @@ func AddSnake(headx, heady int, world *world.World) {
 	world.AddComponents(snakeHead,
 		&components.LeadMovement{MaxSpeed: 3},
 		&components.Position{X: float64(headx), Y: float64(heady)},
-		&components.Velocity{X: 0, Y: 0},
-		&components.Circle{Radius: float64(bodyPartsRadius[0]), StrokeColor: color.White, ShowCenter: true},
+		&components.Velocity{X: 1, Y: 1},
+		&components.Circle{Radius: float64(bodyPartsRadius[0]), StrokeColor: color.RGBA{255, 255, 255, 64}, ShowCenter: true},
 	)
 
 	prev := snakeHead
@@ -35,7 +38,7 @@ func AddSnake(headx, heady int, world *world.World) {
 			&components.DistanceConstraint{Prev: prev, Distance: float64(radius)},
 			&components.Position{X: float64(headx), Y: float64(yposition)},
 			&components.Velocity{X: 0, Y: 0},
-			&components.Circle{Radius: float64(bodyPartsRadius[idx]), StrokeColor: color.White, ShowCenter: true},
+			&components.Circle{Radius: float64(bodyPartsRadius[idx]), StrokeColor: color.RGBA{255, 255, 255, 64}, ShowCenter: true},
 		)
 
 		snakeParts = append(snakeParts, part)
@@ -58,8 +61,8 @@ func StartSnakeScenario(world *world.World) {
 	world.AddSystem(systems.NewFollowMouseSystem(world))
 	world.AddSystem(systems.NewDistanceConstraintSystem(world))
 	world.AddSystem(systems.NewPositionSystem(world))
-	world.AddRenderSystem(systems.NewCircleRenderSystem(world))
 	world.AddRenderSystem(systems.NewSnakeRenderSystem(world))
+	world.AddRenderSystem(systems.NewCircleRenderSystem(world))
 
 	AddSnake(400, 300, world)
 
