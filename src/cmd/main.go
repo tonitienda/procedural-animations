@@ -71,8 +71,7 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		screen.Fill(color.RGBA{0, 0, 0, 255})
 
 		ebitenutil.DebugPrintAt(screen, "Menu", 700, 50)
-
-		g.circleRenderSystem.Draw(screen)
+		g.world.Draw(screen)
 	}
 }
 

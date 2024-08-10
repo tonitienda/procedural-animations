@@ -1,9 +1,15 @@
 package world
 
 import (
+	"github.com/hajimehoshi/ebiten/v2"
 	"github.com/tonitienda/procedural-animations-go/src/pkg/components"
 	"github.com/tonitienda/procedural-animations-go/src/pkg/entities"
 )
+
+type Poins struct {
+	X float64
+	Y float64
+}
 
 // FIXME - entities map should be private or readonly
 type World struct {
@@ -15,12 +21,18 @@ type World struct {
 	BoundaryBouncings   map[entities.Entity]*components.BounceBoundaries
 	LeadMovements       map[entities.Entity]*components.LeadMovement
 	DistanceConstraints map[entities.Entity]*components.DistanceConstraint
+	Snakes              map[entities.Entity]*components.Snake
 	systems             []System
+	renderSystems       []RenderSystem
 	nextEntityID        entities.Entity
 }
 
 type System interface {
 	Update()
+}
+
+type RenderSystem interface {
+	Draw(screen *ebiten.Image)
 }
 
 func NewWorld() *World {
@@ -61,6 +73,8 @@ func (w *World) AddComponents(entity entities.Entity, args ...interface{}) {
 			w.LeadMovements[entity] = c
 		case *components.DistanceConstraint:
 			w.DistanceConstraints[entity] = c
+		case *components.Snake:
+			w.Snakes[entity] = c
 		default:
 			// Handle unknown component types if necessary
 		}
@@ -71,9 +85,20 @@ func (w *World) AddSystem(system System) {
 	w.systems = append(w.systems, system)
 }
 
+func (w *World) AddRenderSystem(system RenderSystem) {
+	w.renderSystems = append(w.renderSystems, system)
+}
+
 func (w *World) Update() {
 	for _, system := range w.systems {
 		system.Update()
+	}
+}
+
+// FIXME - Workd should be independent of the rendering system
+func (w *World) Draw(screen *ebiten.Image) {
+	for _, system := range w.renderSystems {
+		system.Draw(screen)
 	}
 }
 
@@ -86,5 +111,6 @@ func (w *World) Reset() {
 	w.BoundaryBouncings = make(map[entities.Entity]*components.BounceBoundaries)
 	w.LeadMovements = make(map[entities.Entity]*components.LeadMovement)
 	w.DistanceConstraints = make(map[entities.Entity]*components.DistanceConstraint)
+	w.Snakes = make(map[entities.Entity]*components.Snake)
 	w.nextEntityID = 0
 }

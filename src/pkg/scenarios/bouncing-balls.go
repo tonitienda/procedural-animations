@@ -36,6 +36,7 @@ func StartBouncingBallsScenario(world *world.World) {
 	world.AddSystem(systems.NewGravitySystem(world))
 	world.AddSystem(systems.NewBoundaryBouncingSystem(world, 800, 600))
 	world.AddSystem(systems.NewPositionSystem(world))
+	world.AddRenderSystem(systems.NewCircleRenderSystem(world))
 
 	addBouncingBall(world, BouncingBall{
 		PosX:      400,

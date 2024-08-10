@@ -1,7 +1,6 @@
 package systems
 
 import (
-	"fmt"
 	"math"
 
 	"github.com/hajimehoshi/ebiten/v2"
@@ -13,6 +12,7 @@ import (
 func NewFollowMouseSystem(world *world.World) *FollowMouse {
 	return &FollowMouse{
 		Positions:     world.Positions,
+		Velocities:    world.Velocities,
 		LeadMovements: world.LeadMovements,
 	}
 }
@@ -20,19 +20,20 @@ func NewFollowMouseSystem(world *world.World) *FollowMouse {
 type FollowMouse struct {
 	Positions     map[entities.Entity]*components.Position
 	LeadMovements map[entities.Entity]*components.LeadMovement
+	Velocities    map[entities.Entity]*components.Velocity
 }
 
-func getNewPosition(mx, my float64, maxSpeed float64, position *components.Position) *components.Position {
+func getNewVelocity(mx, my float64, maxSpeed float64, position *components.Position) *components.Velocity {
 	// Move the head
 	// FIXME - Current functionality calculates movement separately from x and y axis
 	// Improve it to calculate the movement vector and normalize it
-	fmt.Println("Mouse: ", mx, my)
-	fmt.Println("Position: ", position.X, position.Y)
+	// fmt.Println("Mouse: ", mx, my)
+	// fmt.Println("Position: ", position.X, position.Y)
 
-	fmt.Println("Max Speed: ", maxSpeed)
+	// fmt.Println("Max Speed: ", maxSpeed)
 	diffX, diffY := mx-position.X, my-position.Y
 
-	fmt.Println("Difference: ", diffX, diffY)
+	// fmt.Println("Difference: ", diffX, diffY)
 
 	stepX := float64(0.0)
 	stepY := float64(0.0)
@@ -49,12 +50,12 @@ func getNewPosition(mx, my float64, maxSpeed float64, position *components.Posit
 		stepY = math.Max(-maxSpeed, float64(diffY))
 	}
 
-	fmt.Println("Step: ", stepY, stepX)
-	fmt.Println("-------------------")
+	// fmt.Println("Step: ", stepY, stepX)
+	// fmt.Println("-------------------")
 
-	return &components.Position{
-		X: position.X + stepX,
-		Y: position.Y + stepY,
+	return &components.Velocity{
+		X: stepX,
+		Y: stepY,
 	}
 
 }
@@ -69,6 +70,6 @@ func (f *FollowMouse) Update() {
 			continue
 		}
 
-		f.Positions[entity] = getNewPosition(float64(mx), float64(my), float64(leadMovement.MaxSpeed), position)
+		f.Velocities[entity] = getNewVelocity(float64(mx), float64(my), float64(leadMovement.MaxSpeed), position)
 	}
 }

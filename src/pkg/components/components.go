@@ -37,3 +37,12 @@ type DistanceConstraint struct {
 	Prev     entities.Entity
 	Distance float64
 }
+
+type ChainLink struct {
+	Prev entities.Entity
+	Next entities.Entity
+}
+
+type Snake struct {
+	Circles []entities.Entity
+}
