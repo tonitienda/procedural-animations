@@ -11,9 +11,15 @@ import (
 )
 
 func AddSnake(headx, heady int, world *world.World) {
-	bodyPartsRadius := []float64{20, 25, 30, 25, 20, 15, 15, 15, 10, 10, 10, 5, 5, 3}
+	//bodyPartsRadius := []float64{20, 25, 30, 25, 20, 15, 15, 15, 10, 10, 10, 5, 5, 3}
 	//bodyPartsRadius := []float64{20, 25}
 	//bodyPartsRadius := []float64{20}
+
+	bodyPartsRadius := []int{38, 40}
+
+	for i := 31; i > 0; i-- {
+		bodyPartsRadius = append(bodyPartsRadius, i)
+	}
 
 	log.Println("Adding Snake Head")
 
@@ -35,10 +41,10 @@ func AddSnake(headx, heady int, world *world.World) {
 		yposition += int(radius)
 		part := world.AddEntity()
 		world.AddComponents(part,
-			&components.DistanceConstraint{Prev: prev, Distance: float64(radius)},
+			&components.DistanceConstraint{Prev: prev, Distance: 32},
 			&components.Position{X: float64(headx), Y: float64(yposition)},
 			&components.Velocity{X: 0, Y: 0},
-			&components.Circle{Radius: float64(bodyPartsRadius[idx]), StrokeColor: color.RGBA{255, 255, 255, 64}, ShowCenter: true},
+			&components.Circle{Radius: float64(bodyPartsRadius[idx+1]), StrokeColor: color.RGBA{64, 128, 64, 64}, ShowCenter: true},
 		)
 
 		snakeParts = append(snakeParts, part)
