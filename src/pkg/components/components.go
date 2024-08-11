@@ -46,3 +46,7 @@ type ChainLink struct {
 type Snake struct {
 	Circles []entities.Entity
 }
+
+type Orientation struct {
+	Radians float64
+}

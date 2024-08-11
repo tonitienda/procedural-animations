@@ -22,6 +22,7 @@ type World struct {
 	LeadMovements       map[entities.Entity]*components.LeadMovement
 	DistanceConstraints map[entities.Entity]*components.DistanceConstraint
 	Snakes              map[entities.Entity]*components.Snake
+	Orientations        map[entities.Entity]*components.Orientation
 	systems             []System
 	renderSystems       []RenderSystem
 	nextEntityID        entities.Entity
@@ -44,6 +45,8 @@ func NewWorld() *World {
 		BoundaryBouncings:   make(map[entities.Entity]*components.BounceBoundaries),
 		LeadMovements:       make(map[entities.Entity]*components.LeadMovement),
 		DistanceConstraints: make(map[entities.Entity]*components.DistanceConstraint),
+		Orientations:        make(map[entities.Entity]*components.Orientation),
+		Snakes:              make(map[entities.Entity]*components.Snake),
 		systems:             []System{},
 		nextEntityID:        0,
 	}
@@ -75,6 +78,8 @@ func (w *World) AddComponents(entity entities.Entity, args ...interface{}) {
 			w.DistanceConstraints[entity] = c
 		case *components.Snake:
 			w.Snakes[entity] = c
+		case *components.Orientation:
+			w.Orientations[entity] = c
 		default:
 			// Handle unknown component types if necessary
 		}

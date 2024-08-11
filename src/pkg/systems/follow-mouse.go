@@ -14,6 +14,7 @@ func NewFollowMouseSystem(world *world.World) *FollowMouse {
 		Positions:     world.Positions,
 		Velocities:    world.Velocities,
 		LeadMovements: world.LeadMovements,
+		Orientations:  world.Orientations,
 	}
 }
 
@@ -21,6 +22,7 @@ type FollowMouse struct {
 	Positions     map[entities.Entity]*components.Position
 	LeadMovements map[entities.Entity]*components.LeadMovement
 	Velocities    map[entities.Entity]*components.Velocity
+	Orientations  map[entities.Entity]*components.Orientation
 }
 
 func getNewVelocity(mx, my float64, maxSpeed float64, position *components.Position) *components.Velocity {
@@ -65,11 +67,25 @@ func (f *FollowMouse) Update() {
 	mx, my := ebiten.CursorPosition()
 
 	for entity, leadMovement := range f.LeadMovements {
+
 		position, ok := f.Positions[entity]
 		if !ok {
 			continue
 		}
 
-		f.Velocities[entity] = getNewVelocity(float64(mx), float64(my), float64(leadMovement.MaxSpeed), position)
+		_, ok = f.Velocities[entity]
+		if ok {
+			f.Velocities[entity] = getNewVelocity(float64(mx), float64(my), float64(leadMovement.MaxSpeed), position)
+
+		}
+
+		_, ok = f.Orientations[entity]
+
+		if ok && (position.X != float64(mx) || position.Y != float64(my)) {
+			f.Orientations[entity] = &components.Orientation{
+				Radians: math.Atan2(float64(my)-position.Y, float64(mx)-position.X),
+			}
+		}
+
 	}
 }

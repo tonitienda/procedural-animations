@@ -7,26 +7,27 @@ import (
 
 	"github.com/aquilax/go-perlin"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/tonitienda/procedural-animations-go/src/pkg/components"
 	"github.com/tonitienda/procedural-animations-go/src/pkg/entities"
 	"github.com/tonitienda/procedural-animations-go/src/pkg/world"
 )
 
 type SnakeRenderSystem struct {
-	positions  map[entities.Entity]*components.Position
-	velocities map[entities.Entity]*components.Velocity
-	circles    map[entities.Entity]*components.Circle
-	snakes     map[entities.Entity]*components.Snake
-	perlin     *perlin.Perlin
+	positions    map[entities.Entity]*components.Position
+	orientations map[entities.Entity]*components.Orientation
+	circles      map[entities.Entity]*components.Circle
+	snakes       map[entities.Entity]*components.Snake
+	perlin       *perlin.Perlin
 }
 
 func NewSnakeRenderSystem(world *world.World) *SnakeRenderSystem {
 	return &SnakeRenderSystem{
-		perlin:     perlin.NewPerlin(2, 2, 3, 100),
-		positions:  world.Positions,
-		velocities: world.Velocities,
-		circles:    world.Circles,
-		snakes:     world.Snakes,
+		perlin:       perlin.NewPerlin(2, 2, 3, 100),
+		positions:    world.Positions,
+		orientations: world.Orientations,
+		circles:      world.Circles,
+		snakes:       world.Snakes,
 	}
 }
 func (s *SnakeRenderSystem) Draw(screen *ebiten.Image) {
@@ -41,23 +42,8 @@ func (s *SnakeRenderSystem) Draw(screen *ebiten.Image) {
 	// Clear the image with a background color
 	img.Fill(color.RGBA{64, 200, 0, 255}) // Green background
 
-	// vs := []ebiten.Vertex{
-	// 	{DstX: 100, DstY: 100, ColorR: 1, ColorG: 0, ColorB: 0, ColorA: 1},
-	// 	{DstX: 200, DstY: 100, ColorR: 0, ColorG: 1, ColorB: 0, ColorA: 1},
-	// 	{DstX: 150, DstY: 200, ColorR: 0, ColorG: 0, ColorB: 1, ColorA: 1},
-	// }
-	// is := []uint16{0, 1, 2}
-	// path := vector.Path{}
-	// path.MoveTo(100, 100)
-	// path.LineTo(200, 100)
-	// path.LineTo(150, 200)
-	// path.Close()
-
-	//vs, is := path.AppendVerticesAndIndicesForFilling(nil, nil)
-
 	op := &ebiten.DrawTrianglesOptions{}
 	op.AntiAlias = true
-
 	op.FillRule = ebiten.NonZero
 
 	// Calculate the points for the skin
@@ -67,19 +53,34 @@ func (s *SnakeRenderSystem) Draw(screen *ebiten.Image) {
 		leftSidePoints := [][2]float32{}
 		// Rename Circles to Parts or segments
 		// Head and tail are special. We need to close the body
-		// head := snake.Circles[0]
+		head := snake.Circles[0]
 
-		// headOrientationX, headOrientationY := calculateOrientation(s.velocities[head])
+		headOrientation := s.orientations[head].Radians
 
-		// // See how to calculate the extra points for the head
-		// rightSidePoints = append(rightSidePoints, [2]float32{float32(s.positions[head].X) + headOrientationX*float32(s.circles[head].Radius/2), float32(s.positions[head].Y) + headOrientationY*float32(s.circles[head].Radius*2)})
-		// leftSidePoints = append(leftSidePoints, [2]float32{float32(s.positions[head].X) - headOrientationX*float32(s.circles[head].Radius/2), float32(s.positions[head].Y) + headOrientationY*float32(s.circles[head].Radius*2)})
+		// End with a point in the head that is almost parallel to the orientation
+		// but a little bit to the right side
+		rightHeadPoint := [2]float32{
+			float32(s.positions[head].X) + float32(math.Cos(float64(headOrientation)+math.Pi/8)*float64(s.circles[head].Radius)),
+			float32(s.positions[head].Y) + float32(math.Sin(float64(headOrientation)+math.Pi/8)*float64(s.circles[head].Radius)),
+		}
+
+		// Start with a point in the head that is almost parallel to the orientation
+		// but a little bit to the left side
+		leftHeadPoint := [2]float32{
+			float32(s.positions[head].X) + float32(math.Cos(float64(headOrientation)-math.Pi/8)*float64(s.circles[head].Radius)),
+			float32(s.positions[head].Y) + float32(math.Sin(float64(headOrientation)-math.Pi/8)*float64(s.circles[head].Radius)),
+		}
+
+		// Start with a point in the head that is almost parallel to the orientation
+		// but a little bit to the left side
+		leftSidePoints = append(leftSidePoints, leftHeadPoint)
+		rightSidePoints = append(rightSidePoints, rightHeadPoint)
 
 		for _, part := range snake.Circles {
 			pos := s.positions[part]
-			vel := s.velocities[part]
+			orientation := s.orientations[part]
 			c := s.circles[part]
-			rightPoint, leftPoint := calculatePerpendicularPoints(pos, vel, float64(c.Radius))
+			rightPoint, leftPoint := calculatePerpendicularPoints(pos, orientation, float64(c.Radius))
 
 			rightSidePoints = append(rightSidePoints, rightPoint)
 			leftSidePoints = append(leftSidePoints, leftPoint)
@@ -99,6 +100,14 @@ func (s *SnakeRenderSystem) Draw(screen *ebiten.Image) {
 		vs, is := s.generatePolygon(leftSidePoints, rightSidePoints)
 
 		screen.DrawTriangles(vs, is, img, op)
+
+		for _, point := range rightSidePoints {
+			vector.DrawFilledCircle(screen, float32(point[0]), float32(point[1]), 2, color.RGBA{255, 0, 0, 255}, true)
+		}
+
+		for _, point := range leftSidePoints {
+			vector.DrawFilledCircle(screen, float32(point[0]), float32(point[1]), 2, color.RGBA{255, 0, 0, 255}, true)
+		}
 	}
 
 	// 	// Smooth the points using Catmull-Rom splines
@@ -188,8 +197,9 @@ func calculateOrientation(vel *components.Velocity) (float32, float32) {
 }
 
 // calculatePerpendicularPoints calculates two points perpendicular to the motion
-func calculatePerpendicularPoints(pos *components.Position, vel *components.Velocity, radius float64) (point1, point2 [2]float32) {
-	normVX, normVY := calculateOrientation(vel)
+func calculatePerpendicularPoints(pos *components.Position, orientation *components.Orientation, radius float64) (point1, point2 [2]float32) {
+	normVX := float32(math.Cos(orientation.Radians))
+	normVY := float32(math.Sin(orientation.Radians))
 
 	perpX := -normVY
 	perpY := normVX
@@ -268,14 +278,6 @@ func (s *SnakeRenderSystem) generatePolygon(rightSide, leftSide [][2]float32) ([
 			ColorB: riFactor,
 			ColorA: 1.0,
 		})
-		vertices = append(vertices, ebiten.Vertex{
-			DstX:   float32(rightSide[i+1][0]),
-			DstY:   float32(rightSide[i+1][1]),
-			ColorR: rip1Factor,
-			ColorG: rip1Factor,
-			ColorB: rip1Factor,
-			ColorA: 1.0,
-		})
 
 		// Left side vertices
 		vertices = append(vertices, ebiten.Vertex{
@@ -286,6 +288,16 @@ func (s *SnakeRenderSystem) generatePolygon(rightSide, leftSide [][2]float32) ([
 			ColorB: liFactor,
 			ColorA: 1.0,
 		})
+
+		vertices = append(vertices, ebiten.Vertex{
+			DstX:   float32(rightSide[i+1][0]),
+			DstY:   float32(rightSide[i+1][1]),
+			ColorR: rip1Factor,
+			ColorG: rip1Factor,
+			ColorB: rip1Factor,
+			ColorA: 1.0,
+		})
+
 		vertices = append(vertices, ebiten.Vertex{
 			DstX:   float32(leftSide[i+1][0]),
 			DstY:   float32(leftSide[i+1][1]),
@@ -298,6 +310,11 @@ func (s *SnakeRenderSystem) generatePolygon(rightSide, leftSide [][2]float32) ([
 		// Create two triangles for each segment
 		indices = append(indices, uint16(4*i), uint16(4*i+2), uint16(4*i+1))
 		indices = append(indices, uint16(4*i+1), uint16(4*i+2), uint16(4*i+3))
+
+		// indices = append(indices, uint16(4*i), uint16(4*i+1), uint16(4*i+2))
+		// indices = append(indices, uint16(4*i), uint16(4*i+1), uint16(4*i+3))
+		// indices = append(indices, uint16(4*i), uint16(4*i+3), uint16(4*i+2))
+		// indices = append(indices, uint16(4*i+1), uint16(4*i+2), uint16(4*i+3))
 	}
 	fmt.Println("vertices", vertices, (len(vertices)))
 	fmt.Println("indices", indices)
