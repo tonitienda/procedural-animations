@@ -87,30 +87,57 @@ func (s *SnakeRenderSystem) Draw(screen *ebiten.Image) {
 		//smoothLeftSide := interpolateCatmullRom(leftSidePoints)
 
 		// Create a path that closes the body of the snake
-		path := vector.Path{}
+		// path := vector.Path{}
 
-		// // Start at the first point
-		path.MoveTo(snakeContour[0][0], snakeContour[0][1])
+		// // // Start at the first point
+		// path.MoveTo(snakeContour[0][0], snakeContour[0][1])
 
-		for i := 1; i < len(snakeContour); i++ {
-			path.LineTo(snakeContour[i][0], snakeContour[i][1])
-		}
-
-		// for i := len(smoothRightSide) - 1; i >= 0; i-- {
-		// 	path.LineTo(smoothRightSide[i][0], smoothRightSide[i][1])
+		// for i := 1; i < len(snakeContour); i++ {
+		// 	path.LineTo(snakeContour[i][0], snakeContour[i][1])
 		// }
 
-		path.LineTo(snakeContour[0][0], snakeContour[0][1])
+		// // for i := len(smoothRightSide) - 1; i >= 0; i-- {
+		// // 	path.LineTo(smoothRightSide[i][0], smoothRightSide[i][1])
+		// // }
 
-		path.Close()
+		// path.LineTo(snakeContour[0][0], snakeContour[0][1])
 
-		//vs, is := path.AppendVerticesAndIndicesForFilling(nil, nil)
-		vs, is := path.AppendVerticesAndIndicesForStroke(nil, nil, &vector.StrokeOptions{
-			Width: 2,
-		})
-		screen.DrawTriangles(vs, is, img, &ebiten.DrawTrianglesOptions{
-			FillRule: ebiten.FillAll,
-		})
+		// path.Close()
+
+		// //vs, is := path.AppendVerticesAndIndicesForFilling(nil, nil)
+		// vs, is := path.AppendVerticesAndIndicesForStroke(nil, nil, &vector.StrokeOptions{
+		// 	Width: 2,
+		// })
+		// screen.DrawTriangles(vs, is, img, &ebiten.DrawTrianglesOptions{
+		// 	FillRule: ebiten.FillAll,
+		// })
+
+		// Create vertices from the snake contour
+		vertices := make([]ebiten.Vertex, len(snakeContour))
+		for i, p := range snakeContour {
+			vertices[i] = ebiten.Vertex{
+				DstX:   p[0],
+				DstY:   p[1],
+				ColorR: 0, ColorG: 1, ColorB: 0, ColorA: 1, // Green color
+			}
+		}
+
+		// Create triangle indices
+		indices := []uint16{}
+		for i := 0; i < len(snakeContour)/2-1; i++ {
+			// Connecting the current pair of points with the next pair
+			indices = append(indices,
+				uint16(i),                     // Top point of current segment
+				uint16(len(snakeContour)-1-i), // Bottom point of current segment
+				uint16(i+1),                   // Top point of next segment
+
+				uint16(len(snakeContour)-1-i), // Bottom point of current segment
+				uint16(len(snakeContour)-2-i), // Bottom point of next segment
+				uint16(i+1),                   // Top point of next segment
+			)
+		}
+
+		screen.DrawTriangles(vertices, indices, img, nil)
 
 		// for _, point := range rightSidePoints {
 		// 	vector.DrawFilledCircle(screen, float32(point[0]), float32(point[1]), 2, color.RGBA{255, 0, 0, 255}, true)
