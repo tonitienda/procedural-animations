@@ -48,7 +48,7 @@ func (rs *DistanceConstraingSystem) Update() {
 					velocity.Y = normalizedY*distanceConstraint.Distance + anchor.Y - position.Y
 				}
 				if orientation, ok := rs.orientations[entity]; ok {
-					orientation.Radians = math.Atan2(normalizedY, normalizedX)
+					orientation.Radians = math.Atan2(anchor.Y-position.Y, anchor.X-position.X)
 				}
 			}
 		}

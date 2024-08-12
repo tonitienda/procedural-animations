@@ -1,7 +1,6 @@
 package systems
 
 import (
-	"fmt"
 	"image/color"
 	"math"
 
@@ -30,31 +29,30 @@ func NewSnakeRenderSystem(world *world.World) *SnakeRenderSystem {
 		snakes:       world.Snakes,
 	}
 }
+
 func (s *SnakeRenderSystem) Draw(screen *ebiten.Image) {
-	fmt.Printf("Screen: %#v\n", screen)
+	//fmt.Printf("Screen: %#v\n", screen)
 
 	// Get the dimensions of the screen
 	w, h := screen.Bounds().Dx(), screen.Bounds().Dy()
-	fmt.Printf("Screen dimensions: %d x %d\n", w, h)
+	//fmt.Printf("Screen dimensions: %d x %d\n", w, h)
 
 	img := ebiten.NewImage(w, h)
 
 	// Clear the image with a background color
 	img.Fill(color.RGBA{64, 200, 0, 255}) // Green background
 
-	op := &ebiten.DrawTrianglesOptions{}
-	op.AntiAlias = true
-	op.FillRule = ebiten.NonZero
-
 	// Calculate the points for the skin
 	for _, snake := range s.snakes {
 
-		rightSidePoints := [][2]float32{}
-		leftSidePoints := [][2]float32{}
+		snakeContour := make([][2]float32, len(snake.Circles)*2+2)
+
+		//rightSidePoints := [][2]float32{}
+		//leftSidePoints := [][2]float32{}
 		// Rename Circles to Parts or segments
 		// Head and tail are special. We need to close the body
-		head := snake.Circles[0]
 
+		head := snake.Circles[0]
 		headOrientation := s.orientations[head].Radians
 
 		// End with a point in the head that is almost parallel to the orientation
@@ -71,132 +69,65 @@ func (s *SnakeRenderSystem) Draw(screen *ebiten.Image) {
 			float32(s.positions[head].Y) + float32(math.Sin(float64(headOrientation)-math.Pi/8)*float64(s.circles[head].Radius)),
 		}
 
-		// Start with a point in the head that is almost parallel to the orientation
-		// but a little bit to the left side
-		leftSidePoints = append(leftSidePoints, leftHeadPoint)
-		rightSidePoints = append(rightSidePoints, rightHeadPoint)
+		snakeContourLastIndex := len(snakeContour) - 1
+		snakeContour[0] = leftHeadPoint
+		snakeContour[snakeContourLastIndex] = rightHeadPoint
 
-		for _, part := range snake.Circles {
+		for idx, part := range snake.Circles {
 			pos := s.positions[part]
 			orientation := s.orientations[part]
 			c := s.circles[part]
 			rightPoint, leftPoint := calculatePerpendicularPoints(pos, orientation, float64(c.Radius))
 
-			rightSidePoints = append(rightSidePoints, rightPoint)
-			leftSidePoints = append(leftSidePoints, leftPoint)
+			snakeContour[idx+1] = leftPoint
+			snakeContour[snakeContourLastIndex-idx-1] = rightPoint
 		}
-
-		// See how to calculate the extra points for the tail
-		//tail := snake.Circles[len(snake.Circles)-1]
-		//tailOrientationX, tailOrientationY := calculateOrientation(s.velocities[head])
-		//rightSidePoints = append(rightSidePoints, [2]float32{float32(s.positions[tail].X) + tailOrientationX*float32(s.circles[tail].Radius), float32(s.positions[tail].Y) + tailOrientationY*float32(s.circles[tail].Radius)})
-		//leftSidePoints = append(leftSidePoints, [2]float32{float32(s.positions[tail].X) + tailOrientationX*float32(s.circles[tail].Radius), float32(s.positions[tail].Y) + tailOrientationY*float32(s.circles[tail].Radius)})
 
 		//smoothRightSide := interpolateCatmullRom(rightSidePoints)
 		//smoothLeftSide := interpolateCatmullRom(leftSidePoints)
 
-		//vs, is := s.generatePolygon(smoothLeftSide, smoothRightSide)
+		// Create a path that closes the body of the snake
+		path := vector.Path{}
 
-		vs, is := s.generatePolygon(leftSidePoints, rightSidePoints)
+		// // Start at the first point
+		path.MoveTo(snakeContour[0][0], snakeContour[0][1])
 
-		screen.DrawTriangles(vs, is, img, op)
+		for i := 1; i < len(snakeContour); i++ {
+			path.LineTo(snakeContour[i][0], snakeContour[i][1])
+		}
 
-		for _, point := range rightSidePoints {
+		// for i := len(smoothRightSide) - 1; i >= 0; i-- {
+		// 	path.LineTo(smoothRightSide[i][0], smoothRightSide[i][1])
+		// }
+
+		path.LineTo(snakeContour[0][0], snakeContour[0][1])
+
+		path.Close()
+
+		//vs, is := path.AppendVerticesAndIndicesForFilling(nil, nil)
+		vs, is := path.AppendVerticesAndIndicesForStroke(nil, nil, &vector.StrokeOptions{
+			Width: 2,
+		})
+		screen.DrawTriangles(vs, is, img, &ebiten.DrawTrianglesOptions{
+			FillRule: ebiten.FillAll,
+		})
+
+		// for _, point := range rightSidePoints {
+		// 	vector.DrawFilledCircle(screen, float32(point[0]), float32(point[1]), 2, color.RGBA{255, 0, 0, 255}, true)
+		// }
+
+		// for _, point := range leftSidePoints {
+		// 	vector.DrawFilledCircle(screen, float32(point[0]), float32(point[1]), 2, color.RGBA{255, 0, 0, 255}, true)
+		// }
+
+		for _, point := range snakeContour {
 			vector.DrawFilledCircle(screen, float32(point[0]), float32(point[1]), 2, color.RGBA{255, 0, 0, 255}, true)
 		}
 
-		for _, point := range leftSidePoints {
-			vector.DrawFilledCircle(screen, float32(point[0]), float32(point[1]), 2, color.RGBA{255, 0, 0, 255}, true)
-		}
 	}
-
-	// 	// Smooth the points using Catmull-Rom splines
-	// 	//smoothRightSide := interpolateCatmullRom(rightSidePoints)
-	// 	//smoothLeftSide := interpolateCatmullRom(leftSidePoints)
-
-	// 	// Generate the polygon from the smoothed points
-	// 	//vertices, indices := generatePolygon(smoothRightSide, smoothLeftSide)
-	// 	// vertices, indices := generatePolygon(rightSidePoints, leftSidePoints)
-
-	// 	// if len(vertices) == 0 || len(indices) == 0 {
-	// 	// 	fmt.Println("Empty vertices or indices")
-	// 	// 	return
-	// 	// }
-	// 	// if len(indices)%3 != 0 {
-	// 	// 	fmt.Println("Invalid number of indices")
-	// 	// 	return
-	// 	// }
-
-	// 	// // Draw the polygon
-	// 	// screen.DrawTriangles(vertices, indices, nil, nil)
-
-	// 	vertices := make([]ebiten.Vertex, 0, 3)
-	// 	indices := []uint16{0, 1, 2}
-
-	// 	// Create vertices for the first triangle
-	// 	vertices = append(vertices, ebiten.Vertex{
-	// 		DstX:   rightSidePoints[0][0],
-	// 		DstY:   rightSidePoints[0][1],
-	// 		ColorR: 0,
-	// 		ColorG: 1,
-	// 		ColorB: 0,
-	// 		ColorA: 1,
-	// 	})
-	// 	vertices = append(vertices, ebiten.Vertex{
-	// 		DstX:   rightSidePoints[1][0],
-	// 		DstY:   rightSidePoints[1][1],
-	// 		ColorR: 0,
-	// 		ColorG: 1,
-	// 		ColorB: 0,
-	// 		ColorA: 1,
-	// 	})
-	// 	vertices = append(vertices, ebiten.Vertex{
-	// 		DstX:   leftSidePoints[0][0],
-	// 		DstY:   leftSidePoints[0][1],
-	// 		ColorR: 0,
-	// 		ColorG: 1,
-	// 		ColorB: 0,
-	// 		ColorA: 1,
-	// 	})
-
-	// 	// Print debug information
-	// 	fmt.Printf("Vertices: %+v\n", vertices)
-	// 	fmt.Printf("Indices: %v\n", indices)
-
-	// 	// Check for NaN or Inf values
-	// 	for _, v := range vertices {
-	// 		if math.IsNaN(float64(v.DstX)) || math.IsInf(float64(v.DstX), 0) ||
-	// 			math.IsNaN(float64(v.DstY)) || math.IsInf(float64(v.DstY), 0) {
-	// 			fmt.Println("Warning: Invalid coordinate detected")
-	// 			return
-	// 		}
-	// 	}
-
-	// 	if screen == nil {
-	// 		fmt.Println("Error: screen is nil")
-	// 		return
-	// 	}
-	// 	//	screen.DrawTriangles(vertices, indices, nil, &ebiten.DrawTrianglesOptions{})
-
-	//	}
 
 }
 
-// calculatePerpendicularPoints calculates two points perpendicular to the motion
-func calculateOrientation(vel *components.Velocity) (float32, float32) {
-	length := float32(math.Sqrt(float64(vel.X*vel.X + vel.Y*vel.Y)))
-
-	if length == 0 {
-		length = 1 // Avoid division by zero
-	}
-
-	normalizedVX := float32(vel.X) / length
-	normalizedVY := float32(vel.Y) / length
-
-	return normalizedVX, normalizedVY
-}
-
-// calculatePerpendicularPoints calculates two points perpendicular to the motion
 func calculatePerpendicularPoints(pos *components.Position, orientation *components.Orientation, radius float64) (point1, point2 [2]float32) {
 	normVX := float32(math.Cos(orientation.Radians))
 	normVY := float32(math.Sin(orientation.Radians))
@@ -245,78 +176,4 @@ func catmullRom(p0, p1, p2, p3 [2]float32, t float32) [2]float32 {
 		(-p0[1]+3*p1[1]-3*p2[1]+p3[1])*t3)
 
 	return [2]float32{x, y}
-}
-
-// generatePolygon creates the vertices and indices for drawing the snake
-// FIXME - Noise location should be calculated from the HEAD perspective.
-// So the body of the snake is stable and does not fluctuate based on the movement thought the board
-func (s *SnakeRenderSystem) generatePolygon(rightSide, leftSide [][2]float32) ([]ebiten.Vertex, []uint16) {
-	vertices := make([]ebiten.Vertex, 0, 4*(len(rightSide)-1))
-	indices := make([]uint16, 0, 6*(len(rightSide)-1))
-
-	colorBase := float32(0.3)
-	noiseFactor := float32(0.7)
-
-	for i := 0; i < len(rightSide)-1; i++ {
-
-		riNoise := float32(s.perlin.Noise2D(float64(i*10), float64(i*10)))
-		rip1Noise := float32(s.perlin.Noise2D(float64(i*10+1), float64(i*10+1)))
-		liNoise := float32(s.perlin.Noise2D(float64(i*10), float64(i*10)))
-		lip1Noise := float32(s.perlin.Noise2D(float64(i*10+1), float64(i*10+1)))
-
-		riFactor := colorBase + noiseFactor*riNoise
-		rip1Factor := colorBase + noiseFactor*rip1Noise
-		liFactor := colorBase + noiseFactor*liNoise
-		lip1Factor := colorBase + noiseFactor*lip1Noise
-
-		// Right side vertices
-		vertices = append(vertices, ebiten.Vertex{
-			DstX:   float32(rightSide[i][0]),
-			DstY:   float32(rightSide[i][1]),
-			ColorR: riFactor,
-			ColorG: riFactor,
-			ColorB: riFactor,
-			ColorA: 1.0,
-		})
-
-		// Left side vertices
-		vertices = append(vertices, ebiten.Vertex{
-			DstX:   float32(leftSide[i][0]),
-			DstY:   float32(leftSide[i][1]),
-			ColorR: liFactor,
-			ColorG: liFactor,
-			ColorB: liFactor,
-			ColorA: 1.0,
-		})
-
-		vertices = append(vertices, ebiten.Vertex{
-			DstX:   float32(rightSide[i+1][0]),
-			DstY:   float32(rightSide[i+1][1]),
-			ColorR: rip1Factor,
-			ColorG: rip1Factor,
-			ColorB: rip1Factor,
-			ColorA: 1.0,
-		})
-
-		vertices = append(vertices, ebiten.Vertex{
-			DstX:   float32(leftSide[i+1][0]),
-			DstY:   float32(leftSide[i+1][1]),
-			ColorR: lip1Factor,
-			ColorG: lip1Factor,
-			ColorB: lip1Factor,
-			ColorA: 1.0,
-		})
-
-		// Create two triangles for each segment
-		indices = append(indices, uint16(4*i), uint16(4*i+2), uint16(4*i+1))
-		indices = append(indices, uint16(4*i+1), uint16(4*i+2), uint16(4*i+3))
-
-		// indices = append(indices, uint16(4*i), uint16(4*i+1), uint16(4*i+2))
-		// indices = append(indices, uint16(4*i), uint16(4*i+1), uint16(4*i+3))
-		// indices = append(indices, uint16(4*i), uint16(4*i+3), uint16(4*i+2))
-		// indices = append(indices, uint16(4*i+1), uint16(4*i+2), uint16(4*i+3))
-	}
-	fmt.Println("vertices", vertices, (len(vertices)))
-	fmt.Println("indices", indices)
-	return vertices, indices
 }

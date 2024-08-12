@@ -11,13 +11,10 @@ import (
 )
 
 func AddSnake(headx, heady int, world *world.World) {
-	//bodyPartsRadius := []float64{20, 25, 30, 25, 20, 15, 15, 15, 10, 10, 10, 5, 5, 3}
-	//bodyPartsRadius := []float64{20, 25}
-	//bodyPartsRadius := []float64{20}
 
 	bodyPartsRadius := []int{38, 40}
 
-	for i := 31; i > 0; i-- {
+	for i := 31; i > 1; i-- {
 		bodyPartsRadius = append(bodyPartsRadius, i)
 	}
 
