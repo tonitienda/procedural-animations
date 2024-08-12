@@ -6,7 +6,6 @@ import (
 
 	"github.com/aquilax/go-perlin"
 	"github.com/hajimehoshi/ebiten/v2"
-	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/tonitienda/procedural-animations-go/src/pkg/components"
 	"github.com/tonitienda/procedural-animations-go/src/pkg/entities"
 	"github.com/tonitienda/procedural-animations-go/src/pkg/world"
@@ -83,34 +82,7 @@ func (s *SnakeRenderSystem) Draw(screen *ebiten.Image) {
 			snakeContour[snakeContourLastIndex-idx-1] = rightPoint
 		}
 
-		//smoothRightSide := interpolateCatmullRom(rightSidePoints)
-		//smoothLeftSide := interpolateCatmullRom(leftSidePoints)
-
-		// Create a path that closes the body of the snake
-		// path := vector.Path{}
-
-		// // // Start at the first point
-		// path.MoveTo(snakeContour[0][0], snakeContour[0][1])
-
-		// for i := 1; i < len(snakeContour); i++ {
-		// 	path.LineTo(snakeContour[i][0], snakeContour[i][1])
-		// }
-
-		// // for i := len(smoothRightSide) - 1; i >= 0; i-- {
-		// // 	path.LineTo(smoothRightSide[i][0], smoothRightSide[i][1])
-		// // }
-
-		// path.LineTo(snakeContour[0][0], snakeContour[0][1])
-
-		// path.Close()
-
-		// //vs, is := path.AppendVerticesAndIndicesForFilling(nil, nil)
-		// vs, is := path.AppendVerticesAndIndicesForStroke(nil, nil, &vector.StrokeOptions{
-		// 	Width: 2,
-		// })
-		// screen.DrawTriangles(vs, is, img, &ebiten.DrawTrianglesOptions{
-		// 	FillRule: ebiten.FillAll,
-		// })
+		//snakeContour = interpolateCatmullRom(snakeContour)
 
 		// Create vertices from the snake contour
 		vertices := make([]ebiten.Vertex, len(snakeContour))
@@ -139,17 +111,9 @@ func (s *SnakeRenderSystem) Draw(screen *ebiten.Image) {
 
 		screen.DrawTriangles(vertices, indices, img, nil)
 
-		// for _, point := range rightSidePoints {
+		// for _, point := range snakeContour {
 		// 	vector.DrawFilledCircle(screen, float32(point[0]), float32(point[1]), 2, color.RGBA{255, 0, 0, 255}, true)
 		// }
-
-		// for _, point := range leftSidePoints {
-		// 	vector.DrawFilledCircle(screen, float32(point[0]), float32(point[1]), 2, color.RGBA{255, 0, 0, 255}, true)
-		// }
-
-		for _, point := range snakeContour {
-			vector.DrawFilledCircle(screen, float32(point[0]), float32(point[1]), 2, color.RGBA{255, 0, 0, 255}, true)
-		}
 
 	}
 
