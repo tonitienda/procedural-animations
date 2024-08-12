@@ -6,6 +6,7 @@ import (
 
 	"github.com/aquilax/go-perlin"
 	"github.com/hajimehoshi/ebiten/v2"
+	"github.com/hajimehoshi/ebiten/v2/vector"
 	"github.com/tonitienda/procedural-animations-go/src/pkg/components"
 	"github.com/tonitienda/procedural-animations-go/src/pkg/entities"
 	"github.com/tonitienda/procedural-animations-go/src/pkg/world"
@@ -44,15 +45,22 @@ func (s *SnakeRenderSystem) Draw(screen *ebiten.Image) {
 	// Calculate the points for the skin
 	for _, snake := range s.snakes {
 
-		snakeContour := make([][2]float32, len(snake.Circles)*2+2)
-
-		//rightSidePoints := [][2]float32{}
-		//leftSidePoints := [][2]float32{}
-		// Rename Circles to Parts or segments
-		// Head and tail are special. We need to close the body
-
-		head := snake.Circles[0]
+		snakeContour := make([][2]float32, len(snake.Segments)*2+2)
+		head := snake.Segments[0]
 		headOrientation := s.orientations[head].Radians
+
+		second := snake.Segments[1]
+		secondOrientation := s.orientations[second].Radians
+
+		rightEye := [2]float32{
+			float32(s.positions[second].X) + float32(math.Cos(float64(secondOrientation)+math.Pi/3)*float64(s.circles[second].Radius)),
+			float32(s.positions[second].Y) + float32(math.Sin(float64(secondOrientation)+math.Pi/3)*float64(s.circles[second].Radius)),
+		}
+
+		leftEye := [2]float32{
+			float32(s.positions[second].X) + float32(math.Cos(float64(secondOrientation)-math.Pi/3)*float64(s.circles[second].Radius)),
+			float32(s.positions[second].Y) + float32(math.Sin(float64(secondOrientation)-math.Pi/3)*float64(s.circles[second].Radius)),
+		}
 
 		// End with a point in the head that is almost parallel to the orientation
 		// but a little bit to the right side
@@ -72,17 +80,17 @@ func (s *SnakeRenderSystem) Draw(screen *ebiten.Image) {
 		snakeContour[0] = leftHeadPoint
 		snakeContour[snakeContourLastIndex] = rightHeadPoint
 
-		for idx, part := range snake.Circles {
-			pos := s.positions[part]
-			orientation := s.orientations[part]
-			c := s.circles[part]
+		for idx, segment := range snake.Segments {
+			pos := s.positions[segment]
+			orientation := s.orientations[segment]
+			c := s.circles[segment]
 			rightPoint, leftPoint := calculatePerpendicularPoints(pos, orientation, float64(c.Radius))
 
 			snakeContour[idx+1] = leftPoint
 			snakeContour[snakeContourLastIndex-idx-1] = rightPoint
 		}
 
-		//snakeContour = interpolateCatmullRom(snakeContour)
+		snakeContour = interpolateCatmullRom(snakeContour)
 
 		// Create vertices from the snake contour
 		vertices := make([]ebiten.Vertex, len(snakeContour))
@@ -110,6 +118,9 @@ func (s *SnakeRenderSystem) Draw(screen *ebiten.Image) {
 		}
 
 		screen.DrawTriangles(vertices, indices, img, nil)
+
+		vector.DrawFilledCircle(screen, float32(leftEye[0]), float32(leftEye[1]), 10, color.RGBA{100, 100, 220, 255}, true)
+		vector.DrawFilledCircle(screen, float32(rightEye[0]), float32(rightEye[1]), 10, color.RGBA{100, 100, 220, 255}, true)
 
 		// for _, point := range snakeContour {
 		// 	vector.DrawFilledCircle(screen, float32(point[0]), float32(point[1]), 2, color.RGBA{255, 0, 0, 255}, true)
@@ -141,12 +152,16 @@ func interpolateCatmullRom(points [][2]float32) [][2]float32 {
 	}
 
 	var smoothedPoints [][2]float32
+
+	smoothedPoints = append(smoothedPoints, points[0])
 	for i := 0; i < len(points)-3; i++ {
 		for t := 0; t <= 10; t++ {
 			tt := float32(t) / 10.0
 			smoothedPoints = append(smoothedPoints, catmullRom(points[i], points[i+1], points[i+2], points[i+3], tt))
 		}
 	}
+
+	smoothedPoints = append(smoothedPoints, points[len(points)-1])
 
 	return smoothedPoints
 }

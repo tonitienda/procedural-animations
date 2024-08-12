@@ -44,7 +44,7 @@ type ChainLink struct {
 }
 
 type Snake struct {
-	Circles []entities.Entity
+	Segments []entities.Entity
 }
 
 type Orientation struct {

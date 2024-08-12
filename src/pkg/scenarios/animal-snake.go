@@ -52,7 +52,7 @@ func AddSnake(headx, heady int, world *world.World) {
 	}
 
 	snake := world.AddEntity()
-	world.AddComponents(snake, &components.Snake{Circles: snakeParts})
+	world.AddComponents(snake, &components.Snake{Segments: snakeParts})
 
 	log.Println("Snake added")
 
@@ -67,7 +67,7 @@ func StartSnakeScenario(world *world.World) {
 	world.AddSystem(systems.NewDistanceConstraintSystem(world))
 	world.AddSystem(systems.NewPositionSystem(world))
 	world.AddRenderSystem(systems.NewSnakeRenderSystem(world))
-	world.AddRenderSystem(systems.NewCircleRenderSystem(world))
+	//world.AddRenderSystem(systems.NewCircleRenderSystem(world))
 
 	AddSnake(400, 300, world)
 
