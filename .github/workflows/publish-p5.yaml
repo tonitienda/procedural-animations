@@ -1,10 +1,13 @@
 # Compile the project as waebassembly and upload the generated
 # file and the html and js in static to the repo containing the blog: https://github.com/tsoobame/tsoobame.github.io/tree/main
-name: Publish wasm
+name: Publish p5
 on:
+  workflow_dispatch:
   push:
     branches:
       - main
+    paths:
+      - "p5/**"
 
 jobs:
   build:
@@ -14,17 +17,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
 
-      - name: Setup justfile
-        run: |
-          # Install just
-          curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | sudo bash -s -- --to /usr/local/bin
-          # Check just version
-          just --version
+      - name: Setup nodejs
+        uses: actions/setup-node@v2
+        with:
+          node-version: "18.17"
 
-      - name: Build and publish wasm
+      - name: Build and publish js
         run: |
-          cd ebiten
-          just build-wasm
+          cd p5
+          npm install
+          npm run build
 
       - name: Push to tsoobame repository
         uses: cpina/github-action-push-to-another-repository@main
@@ -32,9 +34,9 @@ jobs:
           SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
-          source-directory: "ebiten/out"
+          source-directory: "p5/dist"
           destination-github-username: "tsoobame"
           destination-repository-name: "tsoobame.github.io"
-          target-directory: "demos/procedural-animations-wasm"
+          target-directory: "demos/procedural-animations-p5"
           user-email: ${{ secrets.SSH_KEY_EMAIL }}
           target-branch: main

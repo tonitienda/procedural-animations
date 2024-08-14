@@ -1,0 +1,43 @@
+# Compile the project as waebassembly and upload the generated
+# file and the html and js in static to the repo containing the blog: https://github.com/tsoobame/tsoobame.github.io/tree/main
+name: Publish ebiten
+on:
+  workflow_dispatch:
+    push:
+      branches:
+        - main
+      paths:
+        - "ebiten/**"
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Setup justfile
+        run: |
+          # Install just
+          curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | sudo bash -s -- --to /usr/local/bin
+          # Check just version
+          just --version
+
+      - name: Build and publish wasm
+        run: |
+          cd ebiten
+          just build-wasm
+
+      - name: Push to tsoobame repository
+        uses: cpina/github-action-push-to-another-repository@main
+        env:
+          SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
+          API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
+        with:
+          source-directory: "ebiten/out"
+          destination-github-username: "tsoobame"
+          destination-repository-name: "tsoobame.github.io"
+          target-directory: "demos/procedural-animations-ebiten"
+          user-email: ${{ secrets.SSH_KEY_EMAIL }}
+          target-branch: main

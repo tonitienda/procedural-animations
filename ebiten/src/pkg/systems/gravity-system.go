@@ -20,10 +20,10 @@ type GravitySystem struct {
 
 func (rs *GravitySystem) Update() {
 	for entity, gravitationalPull := range rs.gravitationalPulls {
-		if Velocity, ok := rs.velocities[entity]; ok {
+		if velocity, ok := rs.velocities[entity]; ok {
 
 			// Apply gravity
-			Velocity.Y += gravitationalPull.Acceleration // Consider using a delta time
+			velocity.Y += gravitationalPull.Acceleration // Consider using a delta time
 
 		}
 	}
