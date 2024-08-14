@@ -1,6 +1,7 @@
 package systems
 
 import (
+	"fmt"
 	"image/color"
 	"math"
 
@@ -111,32 +112,68 @@ func (s *SnakeRenderSystem) Draw(screen *ebiten.Image, op *world.DrawOptions) {
 			snakeContour[snakeContourLastIndex-idx-1] = rightPoint
 		}
 
-		//snakeContour = interpolateCatmullRom(snakeContour)
+		smoothedContour := interpolateCatmullRom(snakeContour, 10)
+
+		//initialPointCount := len(snakeContour)
+		//contourPointsFactor := len(smoothedContour) / initialPointCount
+
+		textureScale := 1
+		segmentLength := len(smoothedContour) / (len(snakeContour) - 3) // -3 accounts for the first, last, and Catmull-Rom needing 4 points
 
 		// Create vertices from the snake contour
-		vertices := make([]ebiten.Vertex, len(snakeContour))
-		for i, p := range snakeContour {
+		vertices := make([]ebiten.Vertex, len(smoothedContour))
+
+		for i, p := range smoothedContour {
+			var srcX, srcY float32
+
+			if i%segmentLength == 0 {
+				// This is a point corresponding to an original point
+				originalIndex := i / segmentLength
+				srcX = snakeContour[originalIndex][0] / float32(textureScale)
+				srcY = snakeContour[originalIndex][1] / float32(textureScale)
+			} else {
+				// Optionally interpolate between known points
+
+				// previousOriginalIndex := int(math.Floor(float64(i) / float64(segmentLength)))
+				// nextOriginalIndex := previousOriginalIndex + 1
+				// if nextOriginalIndex >= len(snakeContour) {
+				// 	nextOriginalIndex = previousOriginalIndex
+				// }
+				// weight := float32(i%(segmentLength)) / float32(segmentLength)
+
+				// srcX = snakeContour[previousOriginalIndex][0]*(1-weight)/float32(textureScale) +
+				// 	snakeContour[nextOriginalIndex][0]*weight/float32(textureScale)
+				// srcY = snakeContour[previousOriginalIndex][1]*(1-weight)/float32(textureScale) +
+				// 	snakeContour[nextOriginalIndex][1]*weight/float32(textureScale)
+				originalIndex := i / segmentLength
+				srcX = snakeContour[originalIndex][0] / float32(textureScale)
+				srcY = snakeContour[originalIndex][1] / float32(textureScale)
+
+			}
+
+			fmt.Println("X", p[0], "Y", p[1], "srcX", srcX, "srcY", srcY)
+
 			vertices[i] = ebiten.Vertex{
 				DstX:   p[0],
 				DstY:   p[1],
-				SrcX:   p[0], // FIXME - Use initial position to calculate the texture coordinates
-				SrcY:   p[1],
+				SrcX:   srcX,
+				SrcY:   srcY,
 				ColorR: 1, ColorG: 1, ColorB: 1, ColorA: 1, // Green color
 			}
 		}
 
 		// Create triangle indices
 		indices := []uint16{}
-		for i := 0; i < len(snakeContour)/2-1; i++ {
+		for i := 0; i < len(smoothedContour)/2-1; i++ {
 			// Connecting the current pair of points with the next pair
 			indices = append(indices,
-				uint16(i),                     // Top point of current segment
-				uint16(len(snakeContour)-1-i), // Bottom point of current segment
-				uint16(i+1),                   // Top point of next segment
+				uint16(i),                        // Top point of current segment
+				uint16(len(smoothedContour)-1-i), // Bottom point of current segment
+				uint16(i+1),                      // Top point of next segment
 
-				uint16(len(snakeContour)-1-i), // Bottom point of current segment
-				uint16(len(snakeContour)-2-i), // Bottom point of next segment
-				uint16(i+1),                   // Top point of next segment
+				uint16(len(smoothedContour)-1-i), // Bottom point of current segment
+				uint16(len(smoothedContour)-2-i), // Bottom point of next segment
+				uint16(i+1),                      // Top point of next segment
 			)
 		}
 
@@ -184,22 +221,24 @@ func calculatePerpendicularPoints(pos *components.Position, orientation *compone
 	return point1, point2
 }
 
-// Catmull-Rom interpolation function
-func interpolateCatmullRom(points [][2]float32) [][2]float32 {
+func interpolateCatmullRom(points [][2]float32, segmentsPerCurve int) [][2]float32 {
 	if len(points) < 4 {
 		return points // Catmull-Rom splines require at least 4 points
 	}
 
 	var smoothedPoints [][2]float32
 
+	// Ensure the first point is included
 	smoothedPoints = append(smoothedPoints, points[0])
+
 	for i := 0; i < len(points)-3; i++ {
-		for t := 0; t <= 10; t++ {
-			tt := float32(t) / 10.0
+		for t := 1; t <= segmentsPerCurve; t++ {
+			tt := float32(t) / float32(segmentsPerCurve)
 			smoothedPoints = append(smoothedPoints, catmullRom(points[i], points[i+1], points[i+2], points[i+3], tt))
 		}
 	}
 
+	// Ensure the last point is included
 	smoothedPoints = append(smoothedPoints, points[len(points)-1])
 
 	return smoothedPoints
