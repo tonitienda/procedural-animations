@@ -30,7 +30,7 @@ func NewSnakeRenderSystem(world *world.World) *SnakeRenderSystem {
 	}
 }
 
-func (s *SnakeRenderSystem) Draw(screen *ebiten.Image) {
+func (s *SnakeRenderSystem) Draw(screen *ebiten.Image, op *world.DrawOptions) {
 	//fmt.Printf("Screen: %#v\n", screen)
 
 	// Get the dimensions of the screen
@@ -122,9 +122,25 @@ func (s *SnakeRenderSystem) Draw(screen *ebiten.Image) {
 		vector.DrawFilledCircle(screen, float32(leftEye[0]), float32(leftEye[1]), 10, color.RGBA{100, 100, 220, 255}, true)
 		vector.DrawFilledCircle(screen, float32(rightEye[0]), float32(rightEye[1]), 10, color.RGBA{100, 100, 220, 255}, true)
 
-		// for _, point := range snakeContour {
-		// 	vector.DrawFilledCircle(screen, float32(point[0]), float32(point[1]), 2, color.RGBA{255, 0, 0, 255}, true)
-		// }
+		if op.Debug {
+			for _, snake := range s.snakes {
+				for _, segment := range snake.Segments {
+					pos := s.positions[segment]
+					circle := s.circles[segment]
+					orientation := s.orientations[segment]
+
+					vector.StrokeLine(screen,
+						float32(pos.X),
+						float32(pos.Y),
+						float32(pos.X)+float32(math.Cos(orientation.Radians)*float64(circle.Radius)),
+						float32(pos.Y)+float32(math.Sin(orientation.Radians)*float64(circle.Radius)),
+						1,
+						color.RGBA{255, 0, 255, 255}, true)
+					vector.DrawFilledCircle(screen, float32(pos.X), float32(pos.Y), 3, color.RGBA{255, 0, 255, 255}, true)
+					vector.StrokeCircle(screen, float32(pos.X), float32(pos.Y), float32(circle.Radius), 1, color.RGBA{255, 0, 255, 255}, true)
+				}
+			}
+		}
 
 	}
 

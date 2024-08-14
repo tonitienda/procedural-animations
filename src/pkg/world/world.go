@@ -32,8 +32,12 @@ type System interface {
 	Update()
 }
 
+type DrawOptions struct {
+	Debug bool
+}
+
 type RenderSystem interface {
-	Draw(screen *ebiten.Image)
+	Draw(screen *ebiten.Image, op *DrawOptions)
 }
 
 func NewWorld() *World {
@@ -101,9 +105,9 @@ func (w *World) Update() {
 }
 
 // FIXME - Workd should be independent of the rendering system
-func (w *World) Draw(screen *ebiten.Image) {
+func (w *World) Draw(screen *ebiten.Image, op *DrawOptions) {
 	for _, system := range w.renderSystems {
-		system.Draw(screen)
+		system.Draw(screen, op)
 	}
 }
 

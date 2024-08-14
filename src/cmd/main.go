@@ -23,6 +23,7 @@ type Game struct {
 	world              *world.World
 	circleRenderSystem *systems.CircleRenderSystem
 	inMenu             bool
+	inDebug            bool
 }
 
 func NewGame() *Game {
@@ -56,6 +57,9 @@ func (g *Game) Update() error {
 
 			if x >= 700 && x <= 800 && y >= 50 && y <= 80 {
 				g.inMenu = true
+			} else if x >= 700 && x <= 800 && y >= 100 && y <= 130 {
+				// TODO - Change the menu look and fill if Debug is active
+				g.inDebug = !g.inDebug
 			}
 		}
 
@@ -71,7 +75,8 @@ func (g *Game) Draw(screen *ebiten.Image) {
 		screen.Fill(color.RGBA{0, 0, 0, 255})
 
 		ebitenutil.DebugPrintAt(screen, "Menu", 700, 50)
-		g.world.Draw(screen)
+		ebitenutil.DebugPrintAt(screen, "Debug", 700, 100)
+		g.world.Draw(screen, &world.DrawOptions{Debug: g.inDebug})
 	}
 }
 

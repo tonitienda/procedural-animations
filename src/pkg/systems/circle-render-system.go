@@ -32,7 +32,7 @@ type CircleRenderSystem struct {
 	circles   *map[entities.Entity]*components.Circle
 }
 
-func (rs *CircleRenderSystem) Draw(screen *ebiten.Image) {
+func (rs *CircleRenderSystem) Draw(screen *ebiten.Image, op *world.DrawOptions) {
 	for entity, position := range *(rs.positions) {
 		if circle, ok := (*(rs.circles))[entity]; ok {
 			if circle.FillColor != nil {
