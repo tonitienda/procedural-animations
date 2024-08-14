@@ -10,6 +10,10 @@ type Position struct {
 	X, Y float64
 }
 
+type InitialPosition struct {
+	X, Y float64
+}
+
 type Velocity struct {
 	X, Y float64
 }

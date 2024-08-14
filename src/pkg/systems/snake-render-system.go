@@ -13,34 +13,55 @@ import (
 )
 
 type SnakeRenderSystem struct {
-	positions    map[entities.Entity]*components.Position
-	orientations map[entities.Entity]*components.Orientation
-	circles      map[entities.Entity]*components.Circle
-	snakes       map[entities.Entity]*components.Snake
-	perlin       *perlin.Perlin
+	positions        map[entities.Entity]*components.Position
+	initialPositions map[entities.Entity]*components.InitialPosition
+	orientations     map[entities.Entity]*components.Orientation
+	circles          map[entities.Entity]*components.Circle
+	snakes           map[entities.Entity]*components.Snake
+	perlin           *perlin.Perlin
+	textture         *ebiten.Image
 }
 
 func NewSnakeRenderSystem(world *world.World) *SnakeRenderSystem {
+
 	return &SnakeRenderSystem{
-		perlin:       perlin.NewPerlin(2, 2, 3, 100),
-		positions:    world.Positions,
-		orientations: world.Orientations,
-		circles:      world.Circles,
-		snakes:       world.Snakes,
+		perlin:           perlin.NewPerlin(2, 2, 3, 100),
+		positions:        world.Positions,
+		initialPositions: world.InitialPositions,
+		orientations:     world.Orientations,
+		circles:          world.Circles,
+		snakes:           world.Snakes,
 	}
 }
 
+func generateTexture(width, height int, scale float64, perlin *perlin.Perlin) *ebiten.Image {
+	img := ebiten.NewImage(width, height)
+
+	for y := 0; y < height; y++ {
+		for x := 0; x < width; x++ {
+			// Scale the coordinates
+			nx := float64(x) / scale
+			ny := float64(y) / scale
+
+			// Generate Perlin noise value
+			noise := perlin.Noise2D(nx, ny)
+
+			// Map the noise value to a color (e.g., green to brown)
+			green := uint8((noise+1)/2*64 + 64) // Scale to [0, 255]
+			red := uint8((noise+1)/2*32 + 64)   // Scale to [0, 255]
+
+			// Set the color based on Perlin noise
+			img.Set(x, y, color.RGBA{R: red, G: green, B: 0, A: 255})
+		}
+	}
+
+	return img
+}
+
 func (s *SnakeRenderSystem) Draw(screen *ebiten.Image, op *world.DrawOptions) {
-	//fmt.Printf("Screen: %#v\n", screen)
-
-	// Get the dimensions of the screen
-	w, h := screen.Bounds().Dx(), screen.Bounds().Dy()
-	//fmt.Printf("Screen dimensions: %d x %d\n", w, h)
-
-	img := ebiten.NewImage(w, h)
-
-	// Clear the image with a background color
-	img.Fill(color.RGBA{64, 200, 0, 255}) // Green background
+	if s.textture == nil {
+		s.textture = generateTexture(screen.Bounds().Dx(), screen.Bounds().Dy(), 100, s.perlin)
+	}
 
 	// Calculate the points for the skin
 	for _, snake := range s.snakes {
@@ -90,7 +111,7 @@ func (s *SnakeRenderSystem) Draw(screen *ebiten.Image, op *world.DrawOptions) {
 			snakeContour[snakeContourLastIndex-idx-1] = rightPoint
 		}
 
-		snakeContour = interpolateCatmullRom(snakeContour)
+		//snakeContour = interpolateCatmullRom(snakeContour)
 
 		// Create vertices from the snake contour
 		vertices := make([]ebiten.Vertex, len(snakeContour))
@@ -98,7 +119,9 @@ func (s *SnakeRenderSystem) Draw(screen *ebiten.Image, op *world.DrawOptions) {
 			vertices[i] = ebiten.Vertex{
 				DstX:   p[0],
 				DstY:   p[1],
-				ColorR: 0, ColorG: 1, ColorB: 0, ColorA: 1, // Green color
+				SrcX:   p[0], // FIXME - Use initial position to calculate the texture coordinates
+				SrcY:   p[1],
+				ColorR: 1, ColorG: 1, ColorB: 1, ColorA: 1, // Green color
 			}
 		}
 
@@ -117,7 +140,7 @@ func (s *SnakeRenderSystem) Draw(screen *ebiten.Image, op *world.DrawOptions) {
 			)
 		}
 
-		screen.DrawTriangles(vertices, indices, img, nil)
+		screen.DrawTriangles(vertices, indices, s.textture, nil)
 
 		vector.DrawFilledCircle(screen, float32(leftEye[0]), float32(leftEye[1]), 10, color.RGBA{100, 100, 220, 255}, true)
 		vector.DrawFilledCircle(screen, float32(rightEye[0]), float32(rightEye[1]), 10, color.RGBA{100, 100, 220, 255}, true)

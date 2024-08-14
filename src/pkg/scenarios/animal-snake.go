@@ -29,6 +29,7 @@ func AddSnake(headx, heady int, world *world.World) {
 		&components.LeadMovement{MaxSpeed: 3},
 		&components.Orientation{Radians: 0},
 		&components.Position{X: float64(headx), Y: float64(heady)},
+		&components.InitialPosition{X: float64(headx), Y: float64(heady)},
 		&components.Velocity{X: 1, Y: 1},
 		&components.Circle{Radius: float64(bodyPartsRadius[0]), StrokeColor: color.RGBA{255, 255, 255, 64}, ShowCenter: true},
 	)
@@ -42,6 +43,7 @@ func AddSnake(headx, heady int, world *world.World) {
 			&components.DistanceConstraint{Prev: prev, Distance: 32},
 			&components.Orientation{Radians: 0},
 			&components.Position{X: float64(headx), Y: float64(yposition)},
+			&components.InitialPosition{X: float64(headx), Y: float64(yposition)},
 			&components.Velocity{X: 0, Y: 0},
 			&components.Circle{Radius: float64(bodyPartsRadius[idx+1]), StrokeColor: color.RGBA{64, 128, 64, 64}, ShowCenter: true},
 		)

@@ -15,6 +15,7 @@ type Poins struct {
 type World struct {
 	entities            []entities.Entity
 	Positions           map[entities.Entity]*components.Position
+	InitialPositions    map[entities.Entity]*components.InitialPosition
 	Velocities          map[entities.Entity]*components.Velocity
 	GravitationalPulls  map[entities.Entity]*components.GravitationalPull
 	Circles             map[entities.Entity]*components.Circle
@@ -43,6 +44,7 @@ type RenderSystem interface {
 func NewWorld() *World {
 	return &World{
 		Positions:           make(map[entities.Entity]*components.Position),
+		InitialPositions:    make(map[entities.Entity]*components.InitialPosition),
 		Velocities:          make(map[entities.Entity]*components.Velocity),
 		GravitationalPulls:  make(map[entities.Entity]*components.GravitationalPull),
 		Circles:             make(map[entities.Entity]*components.Circle),
@@ -68,6 +70,8 @@ func (w *World) AddComponents(entity entities.Entity, args ...interface{}) {
 		switch c := component.(type) {
 		case *components.Position:
 			w.Positions[entity] = c
+		case *components.InitialPosition:
+			w.InitialPositions[entity] = c
 		case *components.GravitationalPull:
 			w.GravitationalPulls[entity] = c
 		case *components.Circle:
