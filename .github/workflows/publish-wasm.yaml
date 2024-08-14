@@ -23,6 +23,7 @@ jobs:
 
       - name: Build and publish wasm
         run: |
+          cd ebiten
           just build-wasm
 
       - name: Push to tsoobame repository
@@ -31,9 +32,9 @@ jobs:
           SSH_DEPLOY_KEY: ${{ secrets.SSH_DEPLOY_KEY }}
           API_TOKEN_GITHUB: ${{ secrets.API_TOKEN_GITHUB }}
         with:
-          source-directory: "out"
+          source-directory: "ebiten/out"
           destination-github-username: "tsoobame"
           destination-repository-name: "tsoobame.github.io"
-          target-directory: "demos/procedural-animations"
+          target-directory: "demos/procedural-animations-wasm"
           user-email: ${{ secrets.SSH_KEY_EMAIL }}
           target-branch: main
