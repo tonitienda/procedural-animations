@@ -32,7 +32,9 @@ import { World } from "../world";
 export const newGravitySystem = (world: World) => {
   return {
     update: () => {
-      for (const entity in Object.keys(world.gravitationalPulls)) {
+      for (const entity of Object.keys(
+        world.gravitationalPulls
+      ) as any as number[]) {
         const gravitationalPull = world.gravitationalPulls[entity];
 
         if (world.velocities[entity]) {

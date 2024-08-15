@@ -4,7 +4,7 @@ import p5 from "p5";
 export const newCircleRenderSystem = (world: World) => {
   return {
     draw: (p: p5, op: any) => {
-      for (const entity in Object.keys(world.circles)) {
+      for (const entity of Object.keys(world.circles) as any as number[]) {
         const position = world.positions[entity];
         const circle = world.circles[entity];
 

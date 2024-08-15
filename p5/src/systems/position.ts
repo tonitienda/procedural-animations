@@ -3,7 +3,7 @@ import { World } from "../world";
 export const newPositionSystem = (world: World) => {
   return {
     update: () => {
-      for (const entity in Object.keys(world.positions)) {
+      for (const entity of Object.keys(world.positions) as any as number[]) {
         const velocity = world.velocities[entity];
 
         if (world.positions[entity] && velocity) {

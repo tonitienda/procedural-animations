@@ -11,7 +11,7 @@ import {
   Snake,
   Orientation,
 } from "./components/index";
-import { s } from "../node_modules/vite/dist/node/types.d-aGj9QkWt";
+import { i, s } from "../node_modules/vite/dist/node/types.d-aGj9QkWt";
 
 interface System {
   update: () => void;
@@ -23,6 +23,7 @@ interface RenderSystem {
 
 // Move to specific types
 type ComponentsList = {
+  initialPosition?: Position;
   position?: Position;
   velocity?: Velocity;
   circle?: Circle;
@@ -36,6 +37,7 @@ type ComponentsList = {
 };
 
 export interface World {
+  p: p5;
   setup: () => void;
   draw: () => void;
   update: () => void;
@@ -47,6 +49,7 @@ export interface World {
 
   // Components
   positions: { [key: number]: Position };
+  initialPositions: { [key: number]: Position };
   velocities: { [key: number]: Velocity };
   circles: { [key: number]: Circle };
   gravitationalPulls: { [key: number]: GravitationalPull };
@@ -63,6 +66,7 @@ export const newWorld = (p: p5): World => {
   const renderSystems: RenderSystem[] = [];
   let entityId = 0;
   let positions: { [key: number]: Position } = {};
+  let initialPositions: { [key: number]: Position } = {};
   let velocities: { [key: number]: Velocity } = {};
   let circles: { [key: number]: Circle } = {};
   let gravitationalPulls: { [key: number]: GravitationalPull } = {};
@@ -80,7 +84,9 @@ export const newWorld = (p: p5): World => {
   };
 
   return {
+    p,
     positions,
+    initialPositions,
     velocities,
     circles,
     gravitationalPulls,
@@ -92,12 +98,13 @@ export const newWorld = (p: p5): World => {
     orientations,
     setup: () => {
       p.setup = () => {
-        p.createCanvas(800, 600);
+        p.createCanvas(1600, 1200);
       };
     },
     reset: () => {
       entityId = 0;
       positions = {};
+      initialPositions = {};
       velocities = {};
       circles = {};
       gravitationalPulls = {};
@@ -158,6 +165,9 @@ export const newWorld = (p: p5): World => {
       }
       if (components.orientation) {
         orientations[entity] = components.orientation;
+      }
+      if (components.initialPosition) {
+        initialPositions[entity] = components.initialPosition;
       }
     },
   };

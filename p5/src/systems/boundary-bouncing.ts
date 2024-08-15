@@ -7,7 +7,9 @@ export const newBoundaryBouncingSystem = (
 ) => {
   return {
     update: () => {
-      for (const entity in Object.keys(world.bounceBoundaries)) {
+      for (const entity of Object.keys(
+        world.bounceBoundaries
+      ) as any as number[]) {
         const bouncing = world.bounceBoundaries[entity];
         const position = world.positions[entity];
         const velocity = world.velocities[entity];
