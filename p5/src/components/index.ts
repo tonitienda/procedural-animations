@@ -37,6 +37,12 @@ export type DistanceConstraint = {
   Distance: number;
 };
 
+export type PositionConstraint = {
+  Prev: number;
+  Distance: number;
+  Radians: number;
+};
+
 export type ChainLink = {
   Prev: number;
   Next: number;
@@ -48,4 +54,12 @@ export type Snake = {
 
 export type Orientation = {
   Radians: number;
+};
+
+export type BodyPart = {
+  Position: Position;
+};
+
+export type Cat = {
+  Head: BodyPart;
 };

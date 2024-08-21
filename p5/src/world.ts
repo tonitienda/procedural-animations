@@ -98,7 +98,7 @@ export const newWorld = (p: p5): World => {
     orientations,
     setup: () => {
       p.setup = () => {
-        p.createCanvas(1600, 1200);
+        p.createCanvas(1300, 600);
       };
     },
     reset: () => {

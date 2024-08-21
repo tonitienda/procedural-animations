@@ -3,13 +3,10 @@ import { World } from "../world";
 export const newDistanceConstraintSystem = (world: World) => {
   return {
     update: () => {
-      console.log("world.distanceConstraints", world.distanceConstraints);
       for (const entity of Object.keys(
         world.distanceConstraints
       ) as any as number[]) {
-        console.log("entity", entity);
         const distanceConstraint = world.distanceConstraints[entity];
-        console.log("distanceConstraint", distanceConstraint);
 
         const anchor = world.positions[distanceConstraint.Prev];
         const position = world.positions[entity];
